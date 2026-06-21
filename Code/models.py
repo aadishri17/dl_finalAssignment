@@ -8,6 +8,12 @@ import torch.nn as nn
 
 activation_str = "Identity"  # Placeholder for activation function, can be replaced with "ReLU" or others as needed.
 
+# Helper function to dynamically calculate the output size of a convolutional block
+def _get_conv_output_size(module, input_channels, height, width):
+    with torch.no_grad():
+        dummy_input = torch.zeros(1, input_channels, height, width)
+        output = module(dummy_input)
+    return output.view(output.size(0), -1).shape[1]
 
 class VGGBlock(nn.Module):
     """Modular VGG block with configurable number of conv layers and channels.
@@ -24,6 +30,7 @@ class VGGBlock(nn.Module):
             layers.append(nn.Conv2d(current_in_channels, out_channels, kernel_size=kernel_size, padding=padding))
             layers.append(nn.BatchNorm2d(out_channels))
             layers.append(nn.ReLU(inplace=True))
+            current_in_channels = out_channels
             
         layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
         self.block = nn.Sequential(*layers)
@@ -62,7 +69,7 @@ class ResBlock(nn.Module):
 
 class AlexNet(nn.Module):
     """AlexNet (Krizhevsky et al., 2012) adapted for smaller inputs."""
-    def __init__(self, **kwargs):
+    def __init__(self, in_channels, img_height, img_width, num_classes, **kwargs):
         super().__init__()
 
         drop_rate = kwargs.get("drop_rate", 0.5)
@@ -87,14 +94,17 @@ class AlexNet(nn.Module):
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         )
         
+        # Corrected: Dynamically calculate the input size for the linear layer
+        num_features = _get_conv_output_size(self.features, in_channels, img_height, img_width)
+        
         self.classifier = nn.Sequential(
             nn.Dropout(p=drop_rate),
-            nn.Linear(2048, 1024),
+            nn.Linear(num_features, 1024),
             nn.ReLU(inplace=True),
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 1024),
             nn.ReLU(inplace=True),
-            nn.Linear(1024, 11),
+            nn.Linear(1024, num_classes),
         )
 
     def forward(self, x):
@@ -105,7 +115,7 @@ class AlexNet(nn.Module):
 
 class VGG16(nn.Module):
     """VGG16 in C configuration of Simonyan & Zisserman, (2014) adapted for smaller inputs."""
-    def __init__(self, in_channels, num_classes, **kwargs):
+    def __init__(self, in_channels,img_height, img_width, num_classes, **kwargs):
         super().__init__()
 
         drop_rate = kwargs.get("drop_rate", 0.5)
@@ -117,9 +127,13 @@ class VGG16(nn.Module):
             VGGBlock(256, 512, num_convs=3),
             VGGBlock(512, 512, num_convs=3)
         )
+
+        # Corrected: Dynamically calculate the input size for the linear layer
+        num_features = _get_conv_output_size(self.features, in_channels, img_height, img_width)
+        
         
         self.classifier = nn.Sequential(
-            nn.Linear(2048, 1024),
+            nn.Linear(num_features, 1024),
             nn.ReLU(inplace=True),
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 512),
@@ -143,6 +157,14 @@ class ResNet18(nn.Module):
         super().__init__()
 
         activation = getattr(nn, activation_str)
+
+        # Corrected: Handle inplace=True for nn.Identity
+        if activation_str == "Identity":
+            self.activation = activation()
+            resblock_activation = activation() # Pass instance to ResBlocks
+        else:
+            self.activation = activation(inplace=True)
+            resblock_activation = activation(inplace=True) # Pass instance to ResBlocks
 
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
@@ -178,3 +200,5 @@ class ResNet18(nn.Module):
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
         self.classifier(out)
+
+        return self.classifier(out)
