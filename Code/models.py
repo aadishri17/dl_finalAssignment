@@ -6,7 +6,7 @@ MG 6/6/2026
 import torch
 import torch.nn as nn
 
-activation_str = "Identity"  # Placeholder for activation function, can be replaced with "ReLU" or others as needed.
+activation_str = "ReLU"  # Placeholder for activation function, can be replaced with "ReLU" or others as needed.
 
 # Helper function to dynamically calculate the output size of a convolutional block
 def _get_conv_output_size(module, input_channels, height, width):
@@ -157,14 +157,6 @@ class ResNet18(nn.Module):
         super().__init__()
 
         activation = getattr(nn, activation_str)
-
-        # Corrected: Handle inplace=True for nn.Identity
-        if activation_str == "Identity":
-            self.activation = activation()
-            resblock_activation = activation() # Pass instance to ResBlocks
-        else:
-            self.activation = activation(inplace=True)
-            resblock_activation = activation(inplace=True) # Pass instance to ResBlocks
 
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
