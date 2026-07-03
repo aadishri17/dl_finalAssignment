@@ -34,13 +34,12 @@ def main():
 
     model_class = getattr(models, config["MODEL"])
     
-    # BUG-010 FIX: Use reasonable drop_rate from config (default 0.5, not 0.99)
-    drop_rate = config.get("DROP_RATE", 0.3)
+    # BUG-010 FIX: passing drop_rate from congig to model initialization
     
     model = model_class(
         in_channels=config["CHANNELS"], 
         num_classes=config["NUM_CLASSES"], 
-        drop_rate=drop_rate,
+        drop_rate=config["DROP_RATE"],
     ).to(device)
     
     criterion = nn.CrossEntropyLoss()
