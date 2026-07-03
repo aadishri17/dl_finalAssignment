@@ -8,13 +8,6 @@ import torch.nn as nn
 
 activation_str = "ReLU"  # Placeholder for activation function, can be replaced with "ReLU" or others as needed.
 
-# Helper function to dynamically calculate the output size of a convolutional block
-def _get_conv_output_size(module, input_channels, height, width):
-    with torch.no_grad():
-        dummy_input = torch.zeros(1, input_channels, height, width)
-        output = module(dummy_input)
-    return output.view(output.size(0), -1).shape[1]
-
 class VGGBlock(nn.Module):
     """Modular VGG block with configurable number of conv layers and channels.
 
@@ -74,7 +67,7 @@ class AlexNet(nn.Module):
     def __init__(self, in_channels, drop_rate, num_classes, **kwargs):
         super().__init__()
         
-        #BUG-005 FIX: correct the input size for the first convolutional layer to match the input image size
+        # BUG-005 FIX: correct the input size for the first convolutional layer to match the input image size
         self.features = nn.Sequential(
             nn.Conv2d(in_channels, 48, kernel_size=7, stride=2, padding=3),
             nn.BatchNorm2d(48),
@@ -95,7 +88,10 @@ class AlexNet(nn.Module):
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         )
         
-        #BUG-006 FIX: Adjust the input size for the first linear layer to match the output of the convolutional layers
+        # BUG-006 FIX: Adjust the input size for the first linear layer to match the output of the convolutional layers
+        # Input: (batch, 3, 64, 64)
+        # After convs/pools: 64→32→16→8→4, output channels=192
+        # Flattened: 192 * 4 * 4 = 3072 (not 2048)
         self.classifier = nn.Sequential(
             nn.Dropout(p=drop_rate),
             nn.Linear(3072, 1024), #why 3072? Because the output of the last convolutional layer is 192 channels with a spatial size of 4x4, resulting in 192 * 4 * 4 = 3072 features.
@@ -103,7 +99,7 @@ class AlexNet(nn.Module):
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 1024),
             nn.ReLU(inplace=True),
-            nn.Linear(1024, num_classes), #BUG-007 FIX: Ensure the output layer has the correct number of classes
+            nn.Linear(1024, num_classes), # BUG-007 FIX: Ensure the output layer has the correct number of classes
         )
 
     def forward(self, x):
@@ -114,10 +110,8 @@ class AlexNet(nn.Module):
 
 class VGG16(nn.Module):
     """VGG16 in C configuration of Simonyan & Zisserman, (2014) adapted for smaller inputs."""
-    def __init__(self, in_channels, num_classes, **kwargs):
+    def __init__(self, in_channels, num_classes, drop_rate, **kwargs):
         super().__init__()
-
-        drop_rate = kwargs.get("drop_rate", 0.5)
 
         self.features = nn.Sequential(
             VGGBlock(in_channels, 64, num_convs=2),
@@ -127,7 +121,7 @@ class VGG16(nn.Module):
             VGGBlock(512, 512, num_convs=3)
         )
         
-        #BUG-008 FIX: Dynamically calculate the input size for the first linear layer based on the output of the convolutional layers
+        # BUG-008 FIX: Dynamically calculate the input size for the first linear layer based on the output of the convolutional layers
         self.classifier = nn.Sequential(
             nn.Linear(2048, 1024),# why 2048? Because the output of the last VGGBlock is 512 channels with a spatial size of 2x2, resulting in 512 * 2 * 2 = 2048 features.
             nn.ReLU(inplace=True),
@@ -187,6 +181,5 @@ class ResNet18(nn.Module):
         out = self.stage4(out)
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
-        self.classifier(out)
-
-        return self.classifier(out) #BUG-009 FIX: Ensure the output of the forward pass is returned
+        
+        return self.classifier(out) # BUG-009 FIX: Ensure the output of the forward pass is returned

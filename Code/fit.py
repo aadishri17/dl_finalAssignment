@@ -15,10 +15,10 @@ class Trainer:
     def train_one_epoch(self, dataloader):
         self.model.train()
         running_loss = 0.0
-        correct, num_sum = 0, 0 #BUG-011 FIX: changed variable name from built sum to num_sum 
+        correct, num_sum = 0, 0 # BUG-011 FIX: changed variable name from built sum to num_sum 
         
         for images, labels in dataloader:
-            # BUG-008 FIX: Zero gradients BEFORE backprop to prevent accumulation
+            # BUG-012 FIX: Zero gradients BEFORE backprop to prevent accumulation
             self.optimizer.zero_grad()
             
             images, labels = images.to(self.device), labels.to(self.device)
