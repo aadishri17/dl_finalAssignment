@@ -189,4 +189,4 @@ class ResNet18(nn.Module):
         out = torch.flatten(out, 1)
         self.classifier(out)
 
-        return self.classifier(out)
+        return self.classifier(out) #BUG-009 FIX: Ensure the output of the forward pass is returned
