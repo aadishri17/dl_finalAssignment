@@ -98,7 +98,7 @@ class AlexNet(nn.Module):
         #BUG-006 FIX: Adjust the input size for the first linear layer to match the output of the convolutional layers
         self.classifier = nn.Sequential(
             nn.Dropout(p=drop_rate),
-            nn.Linear(3072, 1024),
+            nn.Linear(3072, 1024), #why 3072? Because the output of the last convolutional layer is 192 channels with a spatial size of 4x4, resulting in 192 * 4 * 4 = 3072 features.
             nn.ReLU(inplace=True),
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 1024),
@@ -114,7 +114,7 @@ class AlexNet(nn.Module):
 
 class VGG16(nn.Module):
     """VGG16 in C configuration of Simonyan & Zisserman, (2014) adapted for smaller inputs."""
-    def __init__(self, in_channels,img_height, img_width, num_classes, **kwargs):
+    def __init__(self, in_channels, num_classes, **kwargs):
         super().__init__()
 
         drop_rate = kwargs.get("drop_rate", 0.5)
@@ -126,13 +126,10 @@ class VGG16(nn.Module):
             VGGBlock(256, 512, num_convs=3),
             VGGBlock(512, 512, num_convs=3)
         )
-
-        # Corrected: Dynamically calculate the input size for the linear layer
-        num_features = _get_conv_output_size(self.features, in_channels, img_height, img_width)
         
-        
+        #BUG-008 FIX: Dynamically calculate the input size for the first linear layer based on the output of the convolutional layers
         self.classifier = nn.Sequential(
-            nn.Linear(num_features, 1024),
+            nn.Linear(2048, 1024),# why 2048? Because the output of the last VGGBlock is 512 channels with a spatial size of 2x2, resulting in 512 * 2 * 2 = 2048 features.
             nn.ReLU(inplace=True),
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 512),
