@@ -1,7 +1,7 @@
 """
 MAI/IDL SS26 - Final assignment. 
 
-MG 6/6/2026
+MG 6/6/2026 [FIXED]
 """
 import torch
 
@@ -15,13 +15,16 @@ class Trainer:
     def train_one_epoch(self, dataloader):
         self.model.train()
         running_loss = 0.0
-        correct, sum_samples = 0, 0
+        correct, num_sum = 0, 0 #BUG-011 FIX: changed variable name from built sum to num_sum 
         
         for images, labels in dataloader:
+            # BUG-008 FIX: Zero gradients BEFORE backprop to prevent accumulation
+            self.optimizer.zero_grad()
+            
             images, labels = images.to(self.device), labels.to(self.device)
             
-            self.optimizer.zero_grad()
             outputs = self.model(images)
+
             loss = self.criterion(outputs, labels)
             
             loss.backward()
@@ -29,10 +32,10 @@ class Trainer:
             
             running_loss += loss.item() * images.size(0)
             _, predicted = outputs.max(1)
-            sum_samples += labels.size(0)
+            num_sum += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             
-        return running_loss / sum_samples, (correct / sum_samples) * 100
+        return running_loss / num_sum, (correct / num_sum) * 100
 
     def evaluate(self, dataloader):
         self.model.eval()
