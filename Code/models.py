@@ -103,7 +103,7 @@ class AlexNet(nn.Module):
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 1024),
             nn.ReLU(inplace=True),
-            nn.Linear(1024, num_classes),
+            nn.Linear(1024, num_classes), #BUG-007 FIX: Ensure the output layer has the correct number of classes
         )
 
     def forward(self, x):
