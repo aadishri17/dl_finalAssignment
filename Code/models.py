@@ -20,18 +20,20 @@ class VGGBlock(nn.Module):
 
     C configuration from Simonyan & Zisserman's VGG paper.
     """
-    def __init__(self, in_channels, out_channels, num_convs, padding=1):
+    def __init__(self, in_channels, out_channels, num_convs):
         super().__init__()
         layers = []
         current_in_channels = in_channels
         for i in range(num_convs):
             is_config_c_tail = (num_convs == 3 and i == 2)
             kernel_size = 1 if is_config_c_tail else 3
+            # BUG-004 FIX: Use same-padding for both 1x1 and 3x3 convolutions
+            padding = 0 if kernel_size == 1 else 1  # same-padding for both cases
             layers.append(nn.Conv2d(current_in_channels, out_channels, kernel_size=kernel_size, padding=padding))
             layers.append(nn.BatchNorm2d(out_channels))
             layers.append(nn.ReLU(inplace=True))
             current_in_channels = out_channels
-            
+
         layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
         self.block = nn.Sequential(*layers)
 
@@ -69,13 +71,12 @@ class ResBlock(nn.Module):
 
 class AlexNet(nn.Module):
     """AlexNet (Krizhevsky et al., 2012) adapted for smaller inputs."""
-    def __init__(self, in_channels, img_height, img_width, num_classes, **kwargs):
+    def __init__(self, in_channels, drop_rate, num_classes, **kwargs):
         super().__init__()
-
-        drop_rate = kwargs.get("drop_rate", 0.5)
         
+        #BUG-005 FIX: correct the input size for the first convolutional layer to match the input image size
         self.features = nn.Sequential(
-            nn.Conv2d(3, 48, kernel_size=7, stride=2, padding=3),
+            nn.Conv2d(in_channels, 48, kernel_size=7, stride=2, padding=3),
             nn.BatchNorm2d(48),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
@@ -94,12 +95,10 @@ class AlexNet(nn.Module):
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         )
         
-        # Corrected: Dynamically calculate the input size for the linear layer
-        num_features = _get_conv_output_size(self.features, in_channels, img_height, img_width)
-        
+        #BUG-006 FIX: Adjust the input size for the first linear layer to match the output of the convolutional layers
         self.classifier = nn.Sequential(
             nn.Dropout(p=drop_rate),
-            nn.Linear(num_features, 1024),
+            nn.Linear(3072, 1024),
             nn.ReLU(inplace=True),
             nn.Dropout(p=drop_rate),
             nn.Linear(1024, 1024),
