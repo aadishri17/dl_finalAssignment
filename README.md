@@ -92,6 +92,7 @@ print(f"Device: {torch.device('cuda' if torch.cuda.is_available() else 'cpu')}")
 ├── eval.py               # Task 1 - evaluating the performace metrics 
 ├── transfer.py           # Task 3 - transfer learning on orgs data set
 ├── config.json           # Configuration file (tunable hyperparameters)
+├── requirements.txt      # all the necessary packages and libraries required
 ├── README.md             # This file
 ├── AUDIT_LOG.md          # Detailed bug report and fixes
 ├── REPORT.md             # Performance results and analysis
