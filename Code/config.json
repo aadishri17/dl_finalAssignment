@@ -1,11 +1,45 @@
 {
-  "DATA": "orgs",
-  "DATA_PATH": "/Users/Suani/Documents/GitHub/dl_final/data",
-  "MODEL": "VGG16",
-  "CHANNELS": 1,
-  "NUM_CLASSES": 11,
-  "BATCH_SIZE": 32,
-  "LEARNING_RATE": 0.001,
-  "EPOCHS": 20,
-  "INPUT_SIZE": 96
+  "DEFAULTS": {
+    "DATA_PATH": "/data",
+    "BATCH_SIZE": 32,
+    "INPUT_SIZE": 96
+  },
+
+  "DATASETS": {
+    "cells": {
+      "channels": 3,
+      "classes": 8,
+      "best_model": "ResNet18",
+      "dropout": 0.2,
+      "lr": 0.0001,
+      "epochs": 20
+    },
+
+    "chest": {
+      "channels": 1,
+      "classes": 2,
+      "best_model": "ResNet18",
+      "dropout": 0.5,
+      "lr": 0.0001,
+      "epochs": 4
+    },
+
+    "lesions": {
+      "channels": 3,
+      "classes": 7,
+      "best_model": "AlexNet",
+      "dropout": 0.5,
+      "lr": 0.0001,
+      "epochs": 18
+    },
+
+    "orgs": {
+      "channels": 1,
+      "classes": 11,
+      "best_model": "ResNet18",
+      "dropout": 0.3,
+      "lr": 0.0001,
+      "epochs": 14
+    }
+  }
 }
