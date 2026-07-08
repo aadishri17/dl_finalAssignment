@@ -183,3 +183,187 @@ class ResNet18(nn.Module):
         out = torch.flatten(out, 1)
         
         return self.classifier(out) # BUG-009 FIX: Ensure the output of the forward pass is returned
+
+"""
+DOWNSCALED MODELS for Green Initiative (Task 2)
+"""
+
+# VGG16 - Downscaled
+class DownscaledVGG16(nn.Module):
+    """
+    VGG16 with 50% fewer filters per layer
+    Reduction: 64→32, 128→64, 256→128, 512→256
+    This cuts parameters in HALF while keeping same structure    
+    """
+    
+    def __init__(self, in_channels, num_classes, **kwargs):
+        super().__init__()
+        
+        drop_rate = kwargs.get("drop_rate", 0.5)
+
+        self.features = nn.Sequential(
+            nn.Conv2d(in_channels, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),  
+            
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+   
+        self.classifier = nn.Sequential(
+            nn.Linear(1024, 128),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=drop_rate),
+            nn.Linear(128, 64),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=drop_rate),
+            nn.Linear(64, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = torch.flatten(x, 1)
+        return self.classifier(x)
+
+# AlexNet - Downscaled
+class DownscaledAlexNet(nn.Module):
+    """
+    AlexNet with 50% fewer filters
+    This cuts parameters in HALF while keeping same structure
+    """
+    
+    def __init__(self, in_channels, num_classes, **kwargs):
+        super().__init__()
+        drop_rate = kwargs.get("drop_rate", 0.5)
+        
+        self.features = nn.Sequential(
+            # Layer 1: Detect edges, simple patterns
+            nn.Conv2d(in_channels, 24, kernel_size=7, stride=2, padding=3),
+            nn.BatchNorm2d(24),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+            # Layer 2: Combine patterns
+            nn.Conv2d(24, 64, kernel_size=5, padding=2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            
+            # Layers 3-5: Recognize objects
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 96, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=drop_rate),
+            nn.Linear(1536, 512),      # HALF of 3072 → HALF of 1024
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=drop_rate),
+            nn.Linear(512, 256),       # HALF (new reduction step)
+            nn.ReLU(inplace=True),
+            nn.Linear(256, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = torch.flatten(x, 1)
+        return self.classifier(x)
+
+# ResNet18 - Downscaled
+class DownscaledResNet18(nn.Module):
+    """
+    ResNet18 with 50% fewer channels
+    We keep same depth, just make each stage narrower
+    """
+    
+    def __init__(self, in_channels, num_classes, **kwargs):
+        super().__init__()
+        
+        act_str = kwargs.get("activation_str", "ReLU")
+        if act_str == "Identity":
+            self.activation = nn.Identity()
+        else:
+            self.activation = getattr(nn, act_str)(inplace=True)
+
+        # Initial convolution (before residual blocks)
+        self.conv1 = nn.Conv2d(
+            in_channels, 32, 
+            kernel_size=3, stride=1, padding=1, bias=False
+        )
+        self.bn1 = nn.BatchNorm2d(32)       
+        # Stage 1: 32 channels, same image size
+        self.stage1 = nn.Sequential(
+            ResBlock(32, 32, self.activation, stride=1),
+            ResBlock(32, 32, self.activation, stride=1)
+        )
+        
+        # Stage 2: 64 channels, half image size
+        self.stage2 = nn.Sequential(
+            ResBlock(32, 64, self.activation, stride=2),   # stride=2 shrinks image
+            ResBlock(64, 64, self.activation, stride=1)
+        )
+        
+        # Stage 3: 128 channels, quarter image size
+        self.stage3 = nn.Sequential(
+            ResBlock(64, 128, self.activation, stride=2),
+            ResBlock(128, 128, self.activation, stride=1)
+        )
+        
+        # Stage 4: 256 channels, eighth image size
+        self.stage4 = nn.Sequential(
+            ResBlock(128, 256, self.activation, stride=2),
+            ResBlock(256, 256, self.activation, stride=1)
+        )
+        
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # Average all spatial dimensions
+        self.classifier = nn.Linear(256, num_classes)
+
+    def forward(self, x):
+
+        out = self.activation(self.bn1(self.conv1(x))) 
+        out = self.stage1(out)
+        out = self.stage2(out)
+        out = self.stage3(out)
+        out = self.stage4(out)
+        out = self.avgpool(out)
+        out = torch.flatten(out, 1)
+       
+        return self.classifier(out)
