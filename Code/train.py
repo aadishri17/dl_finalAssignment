@@ -13,7 +13,7 @@ import models
 from fit import Trainer
 
 def main():   
-    with open("/Users/Suani/Documents/GitHub/dl_finalAssignment/Code/config.json", "r") as f:
+    with open("config.json", "r") as f:
         config = json.load(f)
 
     device = torch.device(
