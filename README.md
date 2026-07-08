@@ -88,6 +88,9 @@ print(f"Device: {torch.device('cuda' if torch.cuda.is_available() else 'cpu')}")
 ├── models.py             # Model definitions (AlexNet, VGG16, ResNet18)
 ├── fit.py                # Trainer class with train_one_epoch() and evaluate()
 ├── data.py               # Data loading and preprocessing
+├── benchmark.py          # Task 1 - Benchmark file to run and test models across all datasets
+├── eval.py               # Task 1 - evaluating the performace metrics 
+├── transfer.py           # Task 3 - transfer learning on orgs data set
 ├── config.json           # Configuration file (tunable hyperparameters)
 ├── README.md             # This file
 ├── AUDIT_LOG.md          # Detailed bug report and fixes
