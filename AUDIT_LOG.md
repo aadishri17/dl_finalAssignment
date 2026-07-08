@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Total Bugs Found**: 14 
+**Total Bugs Found**: 13
 **Risk Level**: BLOCKING — Pipeline would crash, silently corrupt gradients, or produce invalid/leaked validation metrics without the fixes below. One infrastructure issue (portability of the config path) remains open and unfixed in the current codebase.
 
 ---
