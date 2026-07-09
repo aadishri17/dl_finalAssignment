@@ -56,10 +56,6 @@ TARGET_ACCURACY = {
 with open("config.json") as f:
     config = json.load(f)
 
-# Load benchmark results to get best hyperparams for each combo
-bench_df = pd.read_csv("bench.csv")
-
-
 def get_best_hyperparams(dataset, model):
     """
     Get best hyperparameters from config.json

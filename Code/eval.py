@@ -12,14 +12,6 @@ import models
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Dataset info
-DATASETS = {
-    "cells": {"channels": 3, "classes": 8},
-    "chest": {"channels": 1, "classes": 2},
-    "lesions": {"channels": 3, "classes": 7},
-    "orgs": {"channels": 1, "classes": 11},
-}
-
 # Load best configs from bench.py
 with open("config.json") as f:
     config = json.load(f)

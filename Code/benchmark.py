@@ -252,9 +252,13 @@ for dataset_name in DATASETS.keys():
 
 # Update config.json with best configurations
 config["DATASETS"].update(best_configs)
+config["DATASETS"]["cells"].update(best_configs["cells"])
+config["DATASETS"]["chest"].update(best_configs["chest"])
+config["DATASETS"]["lesions"].update(best_configs["lesions"])
+config["DATASETS"]["orgs"].update(best_configs["orgs"])
 
-with open("config.json", "w") as f:
-    json.dump(config, f, indent=2)
+with open("config.json","w") as f:
+    json.dump(config,f,indent=2)
 
 print("="*80)
 print("Best configs saved directly to: config.json")
