@@ -90,6 +90,7 @@ print(f"Device: {torch.device('cuda' if torch.cuda.is_available() else 'cpu')}")
 │   ├── data.py            # Data loading and preprocessing
 │   ├── benchmark.py       # Task 1 - benchmark file to run and test models across all datasets
 │   ├── eval.py            # Task 1 - evaluating the performance metrics
+│   ├── profiler.py        # Task 2 - profiling the downscaled model
 │   ├── transfer.py        # Task 3 - transfer learning on orgs dataset
 │   └── config.json        # Configuration file (tunable hyperparameters)
 ├── requirements.txt       # All the necessary packages and libraries required
