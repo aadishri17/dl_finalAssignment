@@ -4,7 +4,6 @@ EVALUATE: Compute Accuracy, Precision, Recall, F1 using saved weights
 
 import json
 import torch
-import torch.nn as nn
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import pandas as pd
 
@@ -22,11 +21,11 @@ DATASETS = {
 }
 
 # Load best configs from bench.py
-with open("best_configs.json") as f:
-        best_configs = json.load(f)
-
 with open("config.json") as f:
     config = json.load(f)
+
+datasets_cfg = config["DATASETS"]
+defaults = config["DEFAULTS"]
 
 results = []
 
@@ -34,26 +33,26 @@ print(f"{'='*60}")
 print("EVALUATION METRICS (Using Best Weights)")
 print(f"{'='*60}\n")
 
-for dataset_name, best_cfg in best_configs.items():
+for dataset_name, dataset_cfg in datasets_cfg.items():
     print(f"Evaluating {dataset_name}...")
 
     # Load test data
     _, _, test_loader = get_loaders(
         data=dataset_name,
-        data_path=config["DATA_PATH"],
+        data_path=defaults["DATA_PATH"],
         batch_size=64
     )
 
     # Create model
-    Model = getattr(models, best_cfg["model"])
+    Model = getattr(models, dataset_cfg["best_model"])
     model = Model(
-        in_channels=DATASETS[dataset_name]["channels"],
-        num_classes=DATASETS[dataset_name]["classes"],
-        drop_rate=best_cfg["dropout"]
+    in_channels=dataset_cfg["channels"],
+    num_classes=dataset_cfg["classes"],
+    drop_rate=dataset_cfg["dropout"]
     ).to(device)
-
+    
     # Load best weights (saved during bench.py)
-    weight_path = f"weights/{dataset_name}_{best_cfg['model']}_{best_cfg['dropout']}_{best_cfg['lr']}.pt"
+    weight_path = f"weights/{dataset_name}_{dataset_cfg['best_model']}_{dataset_cfg['dropout']}_{dataset_cfg['lr']}.pt"
     model.load_state_dict(torch.load(weight_path, map_location=device))
     model.eval()
 
@@ -78,7 +77,7 @@ for dataset_name, best_cfg in best_configs.items():
     
     results.append({
         "Dataset": dataset_name,
-        "Model": best_cfg["model"],
+        "Model": dataset_cfg["best_model"],
         "Accuracy": round(accuracy, 2),
         "Precision": round(precision, 4),
         "Recall": round(recall, 4),
