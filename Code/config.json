@@ -1,4 +1,6 @@
 {
+  "_README": "IMPORTANT: The values in DATASETS are the best hyperparameters obtained from benchmark.py. If benchmark.py is run again, manually update these values (or modify benchmark.py to overwrite this file).",
+  
   "DEFAULTS": {
     "DATA_PATH": "/data",
     "BATCH_SIZE": 32,
