@@ -231,10 +231,12 @@ for dataset_name in DATASETS.keys():
     if not meets_target.empty:
         best = meets_target.iloc[0]  # First one (highest accuracy)
         best_configs[dataset_name] = {
-            "model": best["Model"],
-            "dropout": float(best["Dropout"]),
-            "lr": float(best["LR"]),
-            "epochs": int(best["BestEpoch"])
+        "channels": DATASETS[dataset_name]["channels"],
+        "classes": DATASETS[dataset_name]["classes"],
+        "best_model": best["Model"],
+        "dropout": float(best["Dropout"]),
+        "lr": float(best["LR"]),
+        "epochs": int(best["BestEpoch"])
         }
         print(f"{dataset_name.upper()}")
         print(f"  Model:          {best['Model']}")
@@ -248,11 +250,13 @@ for dataset_name in DATASETS.keys():
         print(f"  ✗ NO CONFIG MEETS TARGET {target}%")
         print()
 
-# Save best configs
-with open("best_configs.json", "w") as f:
-    json.dump(best_configs, f, indent=2)
+# Update config.json with best configurations
+config["DATASETS"].update(best_configs)
+
+with open("config.json", "w") as f:
+    json.dump(config, f, indent=2)
 
 print("="*80)
-print("Best configs saved to: best_configs.json")
+print("Best configs saved directly to: config.json")
 print("Best weights saved to: weights/")
-print("="*80 + "\n")               
+print("="*80 + "\n")
