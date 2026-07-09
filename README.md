@@ -1,6 +1,6 @@
 # MAI/IDL SS26 - Final Assignment: Medical Image Classification Pipeline
 
-**Author**: Aadishri Soni & Suhasini Sharma 
+**Author**: Aadishri Soni(10013309) & Suhasini Sharma(10012631)
 **Date**: June 27 – July 8, 2026  
 **Status**: Core bugs fixed & ready for training
 
@@ -84,24 +84,25 @@ print(f"Device: {torch.device('cuda' if torch.cuda.is_available() else 'cpu')}")
 
 ```
 .
-├── train.py              # Main training script
-├── models.py             # Model definitions (AlexNet, VGG16, ResNet18)
-├── fit.py                # Trainer class with train_one_epoch() and evaluate()
-├── data.py               # Data loading and preprocessing
-├── benchmark.py          # Task 1 - Benchmark file to run and test models across all datasets
-├── eval.py               # Task 1 - evaluating the performace metrics 
-├── transfer.py           # Task 3 - transfer learning on orgs data set
-├── config.json           # Configuration file (tunable hyperparameters)
-├── requirements.txt      # all the necessary packages and libraries required
-├── README.md             # This file
-├── AUDIT_LOG.md          # Detailed bug report and fixes
-├── REPORT.md             # Performance results and analysis
-└── datasets/
-    ├── cells.pt          # Medical image dataset
-    ├── chest.pt          # Medical image dataset
-    ├── lesions.pt        # Medical image dataset
-    ├── organs.pt         # Medical image dataset
-    └── orgs.pt           # Medical image dataset
+├── code/
+│   ├── train.py           # Main training script
+│   ├── models.py          # Model definitions (AlexNet, VGG16, ResNet18)
+│   ├── fit.py             # Trainer class with train_one_epoch() and evaluate()
+│   ├── data.py            # Data loading and preprocessing
+│   ├── benchmark.py       # Task 1 - benchmark file to run and test models across all datasets
+│   ├── eval.py            # Task 1 - evaluating the performance metrics
+│   ├── transfer.py        # Task 3 - transfer learning on orgs dataset
+│   └── config.json        # Configuration file (tunable hyperparameters)
+├── requirements.txt       # All the necessary packages and libraries required
+├── README.md              # This file
+├── AUDIT_LOG.md           # Detailed bug report and fixes
+├── REPORT.md              # Performance results and analysis
+└── data/
+    ├── cells.pt           # Medical image dataset
+    ├── chest.pt           # Medical image dataset
+    ├── lesions.pt         # Medical image dataset
+    ├── organs.pt          # Medical image dataset
+    └── orgs.pt            # Medical image dataset
 ```
 
 ---
