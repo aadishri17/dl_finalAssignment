@@ -1,7 +1,6 @@
 # MAI/IDL SS26 - Final Assignment: Operation Cyber-Histology
 
 **Author**: Aadishri Soni(10013309) & Suhasini Sharma(10012631)
-**Date**: June 27 – July 8, 2026  
 **Status**: Core bugs fixed & ready for training
 
 ---
