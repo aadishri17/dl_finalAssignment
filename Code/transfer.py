@@ -28,11 +28,7 @@ pretrain_dropout = orgs_best_config["dropout"]
 pretrain_lr = orgs_best_config["lr"]
 
 # Organs dataset info
-organs = {
-    "channels": 1,
-    "classes": 11,
-    "samples": 500,
-}
+organs = config["DATASETS"]["orgs"]
 
 # Orgs pre-trained weights (source model)
 orgs_weights_path = (f"weights/orgs_{pretrain_model}_{pretrain_dropout}_{pretrain_lr}.pt")
@@ -65,10 +61,12 @@ train_loader, val_loader, test_loader = get_loaders(
 
 # Create model (random weights)
 print("Training...")
-model_scratch = models.ResNet18(
+Model = getattr(models, pretrain_model)
+
+model_scratch = Model(
     in_channels=organs["channels"],
     num_classes=organs["classes"],
-    drop_rate=0.3
+    drop_rate=pretrain_dropout
 ).to(device)
 
 # Setup training
@@ -121,7 +119,7 @@ print("APPROACH 2: TRANSFER LEARNING (Pretrained ORGS)")
 print("="*80 + "\n")
 
 # Create model
-model_transfer = models.ResNet18(
+model_transfer = Model(
     in_channels=organs["channels"],
     num_classes=organs["classes"],
     drop_rate=pretrain_dropout
@@ -148,14 +146,14 @@ trainer_transfer = Trainer(model_transfer, criterion, optimizer_transfer, device
 
 # Training
 best_val_loss = float("inf")
-patience = 10
+patience = orgs_best_config["patience"]
 no_improve = 0
 best_epoch_transfer = 0
 
 print(f"{'Epoch':<10} {'Train Loss':<15} {'Train Acc':<15} {'Val Loss':<15} {'Val Acc':<150}")
 print("-"*80)
 
-for epoch in range(100):
+for epoch in range(orgs_best_config["epochs"]):
 
     train_loss, train_acc = trainer_transfer.train_one_epoch(train_loader)
     val_loss, val_acc = trainer_transfer.evaluate(val_loader)
