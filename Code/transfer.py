@@ -22,15 +22,10 @@ print(f"\n Device: {device}\n")
 with open("config.json") as f:
     config = json.load(f)
 
-# Load best benchmark configuration
-with open("best_configs.json") as f:
-    best_configs = json.load(f)
-
-orgs_best_config = best_configs["orgs"]
-pretrain_model = orgs_best_config["model"]
+orgs_best_config = config["DATASETS"]["orgs"]
+pretrain_model = orgs_best_config["best_model"]
 pretrain_dropout = orgs_best_config["dropout"]
 pretrain_lr = orgs_best_config["lr"]
-pretrain_epochs = orgs_best_config["epochs"]
 
 # Organs dataset info
 organs = {
@@ -40,7 +35,7 @@ organs = {
 }
 
 # Orgs pre-trained weights (source model)
-orgs_weights_path = "weights/orgs_ResNet18_0.3_0.0001.pt"
+orgs_weights_path = (f"weights/orgs_{pretrain_model}_{pretrain_dropout}_{pretrain_lr}.pt")
 
 # Hyperparameters
 hyperparams = {
@@ -64,7 +59,7 @@ print("\n")
 # Load organs data (with normalization from data.py)
 train_loader, val_loader, test_loader = get_loaders(
     data="organs",
-    data_path=config["DATA_PATH"],
+    data_path=config["DEFAULTS"]["DATA_PATH"],
     batch_size=hyperparams["batch_size"]
 )
 
